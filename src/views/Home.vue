@@ -1,21 +1,53 @@
 <template>
   <div id="home">
+    <Navbar />
     <main>
-      <div class="title">Turkish - English Dictionary</div>
-      <div class="words-wrap">
-        <div class="english">
-          {{ selectedWord.english }}
-        </div>
-        <div class="turkish" v-if="showTurkish">
-          {{ selectedWord.turkish }}
-        </div>
-      </div>
-      <div class="button-wrapper">
-        <div class="button" v-on:click="handleChangeWord">
-          <span>Change</span>
-        </div>
-        <div class="button" v-on:click="handleShowClick">
-          <span>Show in Turkish</span>
+      <div
+        class="min-h-screen bg-gray-100 py-16 flex flex-col sm:py-15"
+      >
+        <div class="relative py-3 sm:max-w-xl sm:mx-auto">
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-light-blue-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"
+          ></div>
+          <div
+            class="relative px-4 py-10 pt-0 bg-white shadow-lg sm:rounded-3xl sm:p-20"
+          >
+            <div class="max-w-md mx-auto">
+              <div class="divide-y divide-gray-200">
+                <div
+                  class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7"
+                >
+                  <div class="words-wrap">
+                    <div
+                      class="english whitespace-pre-line inset-0 bg-gradient-to-r from-cyan-400 to-light-blue-500 shadow-lg"
+                      @click="speak"
+                    >
+                      {{ selectedWord.english }} <VoiceIcon class="icon" />
+                    </div>
+                  </div>
+                  <ul class="list-disc space-y-2">
+                    <div class="turkish" v-if="showTurkish">
+                      {{ selectedWord.turkish }}
+                    </div>
+                  </ul>
+                  <p class="italic">V2: {{ selectedWord.V2 }}</p>
+                  <p class="italic">V3: {{ selectedWord.V3 }}</p>
+                </div>
+                <div
+                  class="pt-6 text-base leading-6 font-bold sm:text-lg sm:leading-7"
+                >
+                  <div class="button-wrapper">
+                    <div class="button" v-on:click="handleChangeWord">
+                      <span>Change</span>
+                    </div>
+                    <div class="button" v-on:click="handleShowClick">
+                      <span>Show in Turkish</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -24,19 +56,32 @@
 
 <script>
 import { wordsData } from "@/core";
+import VoiceIcon from "../assests/speakers.svg";
+import Navbar from "@/components/Navbar";
 export default {
   name: "Container",
+  components: {
+    VoiceIcon,
+    Navbar
+  },
   data() {
     return {
       data: wordsData,
       selectedWord: "",
-      showTurkish: false
+      showTurkish: false,
+      tts: window.speechSynthesis,
+      voiceList: null,
+      selectedVoice: null
     };
   },
   created() {
     var random = Math.floor(Math.random() * this.data.data.length);
     this.selectedWord = this.data.data[random];
     this.showTurkish = false;
+    this.selectedVoice = "Alex";
+    this.getVoices().then(voices => {
+      this.voiceList = voices;
+    });
   },
   methods: {
     handleShowClick: function() {
@@ -46,6 +91,24 @@ export default {
       var random = Math.floor(Math.random() * this.data.data.length);
       this.selectedWord = this.data.data[random];
       this.showTurkish = false;
+    },
+    getVoices() {
+      let intervalId;
+      return new Promise(resolve => {
+        intervalId = setInterval(() => {
+          if (this.tts.getVoices().length > 0) {
+            resolve(this.tts.getVoices());
+            clearInterval(intervalId);
+          }
+        });
+      });
+    },
+    speak() {
+      let toSpeak = new SpeechSynthesisUtterance(this.selectedWord.english);
+      toSpeak.voice = this.voiceList.find(
+        v => v.name === this.selectedVoice || null
+      );
+      this.tts.speak(toSpeak);
     }
   }
 };
@@ -60,22 +123,6 @@ export default {
 body {
   font-family: "montserrat", sans-serif;
 }
-#home {
-  background-image: url("https://wallpaperaccess.com/full/316124.jpg");
-  background-size: cover;
-  background-position: bottom;
-  transition: 0.4;
-}
-main {
-  min-height: 100vh;
-  padding: 25px;
-
-  background-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.25),
-    rgba(0, 0, 0, 0.75)
-  );
-}
 @font-face {
   font-family: "Pacifico";
   font-style: normal;
@@ -86,7 +133,6 @@ main {
 }
 .button {
   display: inline-block;
-  margin-top: 5%;
   -webkit-border-radius: 8px;
   -moz-border-radius: 8px;
   border-radius: 8px;
@@ -97,20 +143,14 @@ main {
   -moz-transition: -moz-box-shadow 0.1s ease-in-out;
   -o-transition: -o-box-shadow 0.1s ease-in-out;
   transition: box-shadow 0.1s ease-in-out;
-  font-size: 25px;
+  font-size: 20px;
   color: #fff;
 }
 
 .button-wrapper {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin-bottom: 5%;
+  justify-content: space-between;
 }
 
 .button span {
@@ -173,36 +213,34 @@ main {
   -o-transform: translate(0, 4px);
   transform: translate(0, 4px);
 }
-
-.title {
-  color: white;
-  font-size: 32px;
-  font-weight: 500;
-  text-align: center;
-  text-shadow: 1px 3px rgba(0, 0, 0, 0.25);
-}
 .words-wrap {
   text-align: center;
 }
 .english {
   display: inline-block;
-  padding: 10px 25px;
+  padding: 20px 25px;
   color: white;
-  font-size: 50px;
+  font-size: 42px;
   font-weight: 900;
-
-  text-shadow: 3px 6px rgba(0, 0, 0, 0.25);
-  background-color: rgba(255, 255, 255, 0.25);
+  line-height: 1;
+  text-shadow: 2px 4px rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.08);
   border-radius: 16px;
-  margin: 30px 0;
+  min-width: 75%;
 
-  box-shadow: 3px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 3px 6px rgba(0, 0, 0, 0.12);
 }
 .turkish {
-  color: white;
   font-size: 35px;
   font-weight: 700;
+  color: #ec6a9c;
   font-style: italic;
-  text-shadow: 3px 6px rgba(0, 0, 0, 0.25);
+  line-height: 1;
+  text-shadow: 1px 2px rgba(150, 150, 200, 0.75);
+  text-align: center;
+}
+.icon {
+  display: inline;
+  margin-left: 14px;
 }
 </style>

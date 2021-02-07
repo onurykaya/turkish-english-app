@@ -22,8 +22,9 @@
                       class="english whitespace-pre-line inset-0 bg-gradient-to-r from-cyan-400 to-light-blue-500 shadow-lg"
                       @click="speak"
                     >
-                      {{ selectedWord.english }} <VoiceIcon class="icon" />
+                      {{ selectedWord.english }} <VoiceIcon class="icon" width="30px" height="30px"/>
                     </div>
+
                   </div>
                   <ul class="list-disc space-y-2">
                     <div class="turkish" v-if="showTurkish">
@@ -143,7 +144,7 @@ body {
   -moz-transition: -moz-box-shadow 0.1s ease-in-out;
   -o-transition: -o-box-shadow 0.1s ease-in-out;
   transition: box-shadow 0.1s ease-in-out;
-  font-size: 20px;
+  font-size: 16px;
   color: #fff;
 }
 

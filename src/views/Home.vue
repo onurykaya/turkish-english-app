@@ -79,7 +79,7 @@ export default {
     var random = Math.floor(Math.random() * this.data.data.length);
     this.selectedWord = this.data.data[random];
     this.showTurkish = false;
-    this.selectedVoice = "Alex";
+    this.selectedVoice = "Google US English";
     this.getVoices().then(voices => {
       this.voiceList = voices;
     });
